@@ -1,12 +1,24 @@
+let pets = [];
+const maxPetsEquipped = 5;
 
-const pets = [
-    { name: "Dog", rarity: "Common", boost: 1 },
-    { name: "Cat", rarity: "Rare", boost: 2 },
-    { name: "Dragon", rarity: "Epic", boost: 3 },
-    { name: "Phoenix", rarity: "Legendary", boost: 5 }
-];
+function hatchPet(rarity) {
+    const pet = {
+        rarity: rarity,
+        boost: getBoost(rarity)
+    };
 
-function spawnPet() {
-    const randomPet = pets[Math.floor(Math.random() * pets.length)];
-    console.log(`You spawned a ${randomPet.rarity} ${randomPet.name} with a boost of ${randomPet.boost}`);
+    if (pets.length < maxPetsEquipped) {
+        pets.push(pet);
+    }
 }
+
+function getBoost(rarity) {
+    switch(rarity) {
+        case 'legendary': return { coins: 2, health: 1.5, damage: 2 };
+        case 'epic': return { coins: 1.7, health: 1.3, damage: 1.7 };
+        case 'rare': return { coins: 1.5, health: 1.2, damage: 1.5 };
+        default: return { coins: 1.2, health: 1, damage: 1.2 };
+    }
+}
+
+export { hatchPet };
