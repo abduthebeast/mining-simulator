@@ -1,18 +1,14 @@
 body, html {
-    margin: 0;
-    overflow: hidden;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
 }
 
-#ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    font-family: Arial, sans-serif;
-    font-size: 20px;
-    z-index: 10;
-}
-
-#ui > div {
-    margin-bottom: 10px;
+canvas#gameCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to top, #5ec867, #87ceeb); /* grass to sky */
 }
