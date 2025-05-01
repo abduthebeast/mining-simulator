@@ -1,6 +1,6 @@
 // Game setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -27,21 +27,41 @@ const player = new THREE.Mesh(
 player.position.y = 1;
 scene.add(player);
 
-// Camera
-camera.position.set(0, 10, 10);
-camera.lookAt(player.position);
+// Camera offset
+const cameraOffset = new THREE.Vector3(0, 5, -10);
 
 // Controls
 const keysPressed = {};
 document.addEventListener('keydown', e => keysPressed[e.key.toLowerCase()] = true);
 document.addEventListener('keyup', e => keysPressed[e.key.toLowerCase()] = false);
 
+// Mouse turning
+let isMouseDown = false;
+let previousMouseX = 0;
+let playerRotation = 0;
+
+document.addEventListener('mousedown', e => {
+  isMouseDown = true;
+  previousMouseX = e.clientX;
+});
+document.addEventListener('mouseup', () => {
+  isMouseDown = false;
+});
+document.addEventListener('mousemove', e => {
+  if (isMouseDown) {
+    const deltaX = e.clientX - previousMouseX;
+    playerRotation -= deltaX * 0.005;
+    previousMouseX = e.clientX;
+  }
+});
+
 // UI Elements
-let money = 0;
-let capacity = 10;
+let money = 100;
+let capacity = 50;
 let currentOre = 0;
-document.getElementById('money').innerText = money;
-document.getElementById('capacity').innerText = `${currentOre}/${capacity}`;
+document.getElementById('coin-count').innerText = money;
+document.getElementById('ore-count').innerText = currentOre;
+document.getElementById('ore-max').innerText = capacity;
 
 // Ore types
 const oreTypes = [
@@ -51,7 +71,6 @@ const oreTypes = [
   { name: "Diamond", color: 0x00ffff, value: 50, rarity: 0.05 }
 ];
 
-// Utility to pick a random ore type
 function getRandomOreType() {
   const rand = Math.random();
   let sum = 0;
@@ -65,26 +84,25 @@ function getRandomOreType() {
 // Mine generation
 let ores = [];
 let mineSize = 20;
+
 function generateMine() {
   const orePositions = new Set(ores.map(o => `${o.position.x},${o.position.z}`));
   const half = mineSize / 2;
 
   for (let x = -half; x < half; x++) {
     for (let z = -half; z < half; z++) {
-      if (Math.abs(x) >= half - 5 || Math.abs(z) >= half - 5) {
-        const key = `${x},${z}`;
-        if (!orePositions.has(key) && Math.random() < 0.3) {
-          const oreType = getRandomOreType();
-          const ore = new THREE.Mesh(
-            new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshStandardMaterial({ color: oreType.color })
-          );
-          ore.position.set(x, 0.5, z);
-          ore.userData = { type: oreType };
-          scene.add(ore);
-          ores.push(ore);
-          orePositions.add(key);
-        }
+      const key = `${x},${z}`;
+      if (!orePositions.has(key) && Math.random() < 0.2) {
+        const oreType = getRandomOreType();
+        const ore = new THREE.Mesh(
+          new THREE.BoxGeometry(1, 1, 1),
+          new THREE.MeshStandardMaterial({ color: oreType.color })
+        );
+        ore.position.set(x, 0.5, z);
+        ore.userData = { type: oreType };
+        scene.add(ore);
+        ores.push(ore);
+        orePositions.add(key);
       }
     }
   }
@@ -92,7 +110,7 @@ function generateMine() {
 
 // Mining
 const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
+
 window.addEventListener('click', () => {
   raycaster.setFromCamera({ x: 0, y: 0 }, camera);
   const intersects = raycaster.intersectObjects(ores);
@@ -101,8 +119,8 @@ window.addEventListener('click', () => {
     if (currentOre < capacity) {
       currentOre++;
       money += ore.userData.type.value;
-      document.getElementById('money').innerText = money;
-      document.getElementById('capacity').innerText = `${currentOre}/${capacity}`;
+      document.getElementById('coin-count').innerText = money;
+      document.getElementById('ore-count').innerText = currentOre;
       scene.remove(ore);
       ores = ores.filter(o => o !== ore);
     }
@@ -110,17 +128,43 @@ window.addEventListener('click', () => {
 });
 
 // Shop
-document.getElementById('upgradeBackpack').addEventListener('click', () => {
-  const cost = capacity * 10;
+function upgradeTool() {
+  const cost = 50;
   if (money >= cost) {
     money -= cost;
-    capacity += 5;
-    document.getElementById('money').innerText = money;
-    document.getElementById('capacity').innerText = `${currentOre}/${capacity}`;
+    document.getElementById('coin-count').innerText = money;
+    alert("Tool upgraded!");
   }
+}
+
+function upgradeBackpack() {
+  const cost = capacity * 2;
+  if (money >= cost) {
+    money -= cost;
+    capacity += 10;
+    document.getElementById('coin-count').innerText = money;
+    document.getElementById('ore-max').innerText = capacity;
+  }
+}
+
+function sellOre() {
+  money += currentOre * 2;
+  currentOre = 0;
+  document.getElementById('coin-count').innerText = money;
+  document.getElementById('ore-count').innerText = currentOre;
+}
+
+document.getElementById('shop-button').addEventListener('click', () => {
+  const shopUI = document.getElementById('shop-ui');
+  shopUI.style.display = shopUI.style.display === 'none' ? 'block' : 'none';
 });
 
-// Pet system
+document.getElementById('inventory-button').addEventListener('click', () => {
+  const invUI = document.getElementById('inventory-ui');
+  invUI.style.display = invUI.style.display === 'none' ? 'block' : 'none';
+});
+
+// Pets
 const pets = [];
 function spawnPet() {
   const pet = new THREE.Mesh(
@@ -139,14 +183,23 @@ function animate() {
 
   // Player movement
   const speed = 0.15;
-  if (keysPressed['w']) player.position.z -= speed;
-  if (keysPressed['s']) player.position.z += speed;
-  if (keysPressed['a']) player.position.x -= speed;
-  if (keysPressed['d']) player.position.x += speed;
+  const direction = new THREE.Vector3();
 
-  camera.position.x = player.position.x;
-  camera.position.z = player.position.z + 10;
+  if (keysPressed['w']) direction.z -= 1;
+  if (keysPressed['s']) direction.z += 1;
+  if (keysPressed['a']) direction.x -= 1;
+  if (keysPressed['d']) direction.x += 1;
+
+  direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
+  player.position.addScaledVector(direction, speed);
+
+  // Update camera
+  const camPos = player.position.clone().add(cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation));
+  camera.position.copy(camPos);
   camera.lookAt(player.position);
+
+  // Rotate player
+  player.rotation.y = playerRotation;
 
   // Pet follow
   pets.forEach(pet => {
@@ -156,7 +209,7 @@ function animate() {
     pet.position.z += dz * 0.05;
   });
 
-  // Expand mine over time
+  // Expand mine
   if (money > mineSize * 2) {
     mineSize += 10;
     generateMine();
@@ -164,77 +217,6 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+
 generateMine();
 animate();
-// --- Ore system ---
-const oreTypes = [
-  { name: 'Stone', color: 0x888888, value: 1, rarity: 0.6 },
-  { name: 'Iron', color: 0xb7410e, value: 5, rarity: 0.25 },
-  { name: 'Gold', color: 0xffd700, value: 10, rarity: 0.1 },
-  { name: 'Diamond', color: 0x00ffff, value: 25, rarity: 0.05 }
-];
-
-let oreBlocks = [];
-let minedCount = 0;
-let mineSize = 20;
-
-function spawnOreField(centerX = 30, centerZ = 0, size = mineSize) {
-  for (let x = -size / 2; x < size / 2; x += 2) {
-    for (let z = -size / 2; z < size / 2; z += 2) {
-      const oreType = getRandomOreType();
-      const block = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({ color: oreType.color })
-      );
-      block.position.set(centerX + x, 0.5, centerZ + z);
-      block.userData = { oreType };
-      scene.add(block);
-      oreBlocks.push(block);
-    }
-  }
-}
-
-function getRandomOreType() {
-  const rand = Math.random();
-  let cumulative = 0;
-  for (const ore of oreTypes) {
-    cumulative += ore.rarity;
-    if (rand < cumulative) return ore;
-  }
-  return oreTypes[0]; // fallback to common
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'e') tryMine();
-});
-
-function tryMine() {
-  for (let i = 0; i < oreBlocks.length; i++) {
-    const ore = oreBlocks[i];
-    const dist = player.position.distanceTo(ore.position);
-    if (dist < 2.5) {
-      scene.remove(ore);
-      oreBlocks.splice(i, 1);
-      collectOre(ore.userData.oreType);
-      return;
-    }
-  }
-}
-
-function collectOre(ore) {
-  currentOre++;
-  coins += ore.value;
-  minedCount++;
-
-  document.getElementById('capacity-text').innerText = `Ore: ${currentOre} / ${maxOre}`;
-  document.getElementById('coins-text').innerText = `Coins: ${coins}`;
-
-  if (minedCount % 10 === 0) {
-    mineSize += 10;
-    spawnOreField(30, 0, mineSize);
-  }
-}
-
-// --- Initial mine generation ---
-spawnOreField();
-
