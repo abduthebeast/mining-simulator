@@ -83,7 +83,7 @@ function getRandomOreType() {
 
 // Mine generation
 let ores = [];
-let mineSize = 20;
+let mineSize = 10;
 
 function generateMine() {
   const orePositions = new Set(ores.map(o => `${o.position.x},${o.position.z}`));
@@ -182,7 +182,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Player movement
-  const speed = 0.15;
+  const speed = 0.25;
   const direction = new THREE.Vector3();
 
   if (keysPressed['w']) direction.z -= 1;
