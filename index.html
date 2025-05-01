@@ -2,67 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>3D Mining Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mining Simulator</title>
   <style>
     body { margin: 0; overflow: hidden; }
-    #ui {
+    canvas { display: block; }
+
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    #capacity-text, #shop-ui, #inventory-ui {
       position: absolute;
       top: 10px;
       left: 10px;
-      color: white;
-      font-family: sans-serif;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(255,255,255,0.8);
       padding: 10px;
-      z-index: 10;
+      border-radius: 6px;
     }
-    canvas { display: block; }
+
+    #inventory-ui {
+      top: 120px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div id="ui">
-    Health: <span id="health">100</span><br />
-    Coins: <span id="coins">0</span><br />
-    Ore: <span id="ore">0</span>/<span id="capacity">5</span><br />
-    <button id="hatchBtn">Hatch Egg</button>
+
+  <div id="shop-ui" style="display: none;">
+    <div>Welcome to the Shop</div>
+    <div id="coins-text">Coins: 100</div>
+    <button class="button" onclick="upgradeTool()">Upgrade Tool</button>
+    <button class="button" onclick="upgradeBackpack()">Upgrade Backpack</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
-  <script>
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb); // sky blue
+  <div id="capacity-text">Ore: 0 / 50</div>
+  
+  <div id="ore-ui" style="position: absolute; top: 180px; left: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 6px;">
+    Ore: <span id="ore-count">0</span> / <span id="ore-max">50</span><br>
+    Coins: <span id="coin-count">100</span><br><br>
+    <button onclick="sellOre()">Sell Ore</button>
+  </div>
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 5, 10);
+  <button class="button" id="hatch-button">Hatch Egg</button>
+  <button class="button" id="shop-button">Open Shop</button>
+  <button class="button" id="inventory-button">Inventory</button>
 
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+  <div id="inventory-ui">
+    <div>Your Pets & Items</div>
+    <div id="inventory-content">No pets yet.</div>
+  </div>
 
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 10, 5);
-    scene.add(light);
+  <!-- Add Money and Capacity UI -->
+  <div id="ore-ui" style="position: absolute; top: 50px; left: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 6px;">
+    Coins: <span id="money">0</span><br>
+    Capacity: <span id="capacity">0</span><br>
+  </div>
 
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(100, 100),
-      new THREE.MeshStandardMaterial({ color: 0x228B22 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
-
-    const player = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 2, 1),
-      new THREE.MeshStandardMaterial({ color: 0xffff00 })
-    );
-    player.position.y = 1;
-    scene.add(player);
-
-    function animate() {
-      requestAnimationFrame(animate);
-      camera.lookAt(player.position);
-      renderer.render(scene, camera);
-    }
-
-    animate();
-  </script>
+  <!-- Load THREE.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <!-- Your game script -->
+  <script src="game.js"></script>
 </body>
 </html>
