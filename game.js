@@ -185,10 +185,10 @@ function animate() {
   const speed = 0.25;
   const direction = new THREE.Vector3();
 
-  if (keysPressed['w']) direction.z += 1;
-  if (keysPressed['s']) direction.z -= 1;
-  if (keysPressed['a']) direction.x += 1;
-  if (keysPressed['d']) direction.x -= 1;
+  if (keysPressed['w']) direction.z -= 1;
+  if (keysPressed['s']) direction.z += 1;
+  if (keysPressed['a']) direction.x -= 1;
+  if (keysPressed['d']) direction.x += 1;
 
   direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
   player.position.addScaledVector(direction, speed);
