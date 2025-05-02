@@ -82,7 +82,7 @@ function getRandomOreType() {
 }
 
 // Mine generationfunction
-generateMine() {
+generateMine() 
   const orePositions = new Set(ores.map(o => `${o.position.x},${o.position.z}`));
   const half = mineSize / 2;
 
