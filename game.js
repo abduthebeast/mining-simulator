@@ -81,18 +81,15 @@ function getRandomOreType() {
   return oreTypes[0];
 }
 
-// Mine generation
-let ores = [];
-let mineSize = 10;
-
-function generateMine() {
+// Mine generationfunction
+generateMine() {
   const orePositions = new Set(ores.map(o => `${o.position.x},${o.position.z}`));
   const half = mineSize / 2;
 
   for (let x = -half; x < half; x++) {
     for (let z = -half; z < half; z++) {
       const key = `${x},${z}`;
-      if (!orePositions.has(key) && Math.random() < 0.2) {
+      if (!orePositions.has(key) && Math.random() < 0.15) {  // lowered from 0.2 to 0.15
         const oreType = getRandomOreType();
         const ore = new THREE.Mesh(
           new THREE.BoxGeometry(1, 1, 1),
@@ -210,9 +207,16 @@ function animate() {
   });
 
   // Expand mine
-  if (money > mineSize * 5 )
-    mineSize += 3;
-    generateMine();
+// Add this variable at the top of your script
+let lastMineSize = mineSize;
+
+// Inside the animate() function:
+if (money > lastMineSize * 2) {
+  mineSize += 10;
+  lastMineSize = mineSize;
+  generateMine();
+}
+
   }
 
   renderer.render(scene, camera);
