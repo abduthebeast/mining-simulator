@@ -182,13 +182,13 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Player movement
-  const speed = 0.25;
+  const speed = 0.50;
   const direction = new THREE.Vector3();
 
-  if (keysPressed['w']) direction.z -= 3;
-  if (keysPressed['s']) direction.z += 3;
-  if (keysPressed['a']) direction.x -= 3;
-  if (keysPressed['d']) direction.x += 3;
+  if (keysPressed['w']) direction.z += 1;
+  if (keysPressed['s']) direction.z -= 1;
+  if (keysPressed['a']) direction.x += 1;
+  if (keysPressed['d']) direction.x -= 1;
 
   direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
   player.position.addScaledVector(direction, speed);
@@ -210,7 +210,7 @@ function animate() {
   });
 
   // Expand mine
-  if (money > mineSize * 2) {
+  if (money > mineSize * 5 )
     mineSize += 3;
     generateMine();
   }
